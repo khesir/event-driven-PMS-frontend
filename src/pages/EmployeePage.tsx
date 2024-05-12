@@ -10,7 +10,6 @@ export default function EmployeePage() {
           
           <EmployeePageHeading/>
       </div>
-      <p>Note: Always refresh the page when adding, updating and deleting : Auto refresh isnt added yet</p>
       <EmployeePageTable/>
     </div>
   )

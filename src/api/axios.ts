@@ -32,5 +32,4 @@ export const request = async <T>(method: AxiosRequestConfig["method"], url: stri
         headers: headers,
         data: data,
     });
-
 };

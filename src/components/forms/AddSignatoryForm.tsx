@@ -28,7 +28,7 @@ import { createSignatory } from "@/controller/signatory"
 
 const columns: ColumnDef<Employee>[] = [
     {
-      accessorKey: "empNum",
+      accessorKey: "id",
       header: "ID",
     },{
       accessorKey: "employeeData.firstname",
@@ -46,7 +46,7 @@ const columns: ColumnDef<Employee>[] = [
       accessorKey: "status",
       header: "Status",
     },{
-      accessorKey: "department.departmentName",
+      accessorKey: "department.name",
       header: "Department",
     },{
       accessorKey: "designation.designationName",
@@ -69,8 +69,9 @@ export function AddSignatoryForm(){
           const getData = async () =>{
               try {
                     const data = await getAllEmployee();
-                    console.log(data)
-                    setEmployee(data);
+                    if(data){
+                        setEmployee(data);
+                    }
               } catch (error) {
                 console.log(error)
               }
@@ -153,7 +154,7 @@ export function AddSignatoryForm(){
                                         </FormControl>
                                         <SelectContent>
                                             {employee.map((d,i) => (
-                                                <SelectItem key={i} value={String(d.id)}>{d.empNum}</SelectItem>
+                                                <SelectItem key={i} value={String(d.id)}>{d.id}</SelectItem>
                                             ))}
                                         </SelectContent>
                                         <FormMessage/>

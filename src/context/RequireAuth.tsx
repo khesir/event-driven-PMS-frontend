@@ -3,14 +3,15 @@ import { useLocation, Navigate, Outlet } from 'react-router-dom';
 import { AuthContext } from './AuthProvider';
 
 type Props = {
-    allowedRoles: string
+    allowedRoles: string[]
 }
 export default function RequireAuth({ allowedRoles }: Props) {
     const { auth } = useContext(AuthContext);
     const location = useLocation();
+    const isAllowed = allowedRoles.includes(auth.accessLevel);
 
     return (
-        auth.accessLevel === allowedRoles ? (
+        isAllowed ? (
             <Outlet />
         ) : auth.accessToken ? (
             <Navigate to="/unauthorized" state={{ from: location }} replace />

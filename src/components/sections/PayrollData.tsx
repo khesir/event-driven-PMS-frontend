@@ -57,7 +57,6 @@ type EmpData = {
 
 
 export function PayrollData({data}: EmpData){
-    console.log(data)
     const [payroll,setPayroll] = useState<PayrollData[]>([])
 
     useEffect(()=> {

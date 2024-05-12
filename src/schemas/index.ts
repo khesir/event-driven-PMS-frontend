@@ -1,5 +1,11 @@
 import * as z from "zod"
 
+export const RegisterForm = z.object({
+    email: z.string().min(2),
+    password: z.string().min(2),
+    role: z.string().min(2)
+})
+
 export const LoginForm = z.object({
     email: z.string().email().min(2),
     password: z.string().min(2,{
@@ -13,7 +19,7 @@ export const postSchema = z.object({
 
 export const payrollSchema = z.object({
     signatory: z.string().min(1),
-    payperiod: z.string().min(1)
+    payrollFrequency: z.string().min(1),
 })
 
 export const DataEmployeeSchema = z.object({
@@ -34,7 +40,12 @@ export const EmployeeSchema = z.object({
     department: z.string().min(1),
     designation: z.string().min(1),
     employeeType: z.string().min(1),
-    status:z.string().min(1)
+    // optional details
+    bankAccountDetails: z.string(),
+    philhealth: z.string(),
+    socialSecurity: z.string(),
+    taxIdentification: z.string(),
+    hourlyRate: z.string()
 })
 
 export const DepartmentEmployeeSchema = z.object({

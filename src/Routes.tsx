@@ -15,6 +15,7 @@ import { EmployeeLayout } from "./layouts/EmployeeLayout"
 import LeaveRequestPage from "./pages/LeaveRequestPage"
 import PayHeadsPage from "./pages/PayheadPage"
 import UnauthorizedPage from "./pages/UnauthorizedPage"
+import PayrollDetailPage from "./pages/PayrollDetailsPage"
 
 
 
@@ -25,18 +26,18 @@ export default function Routes(){
             <Route path="/register" element={<RegisterPage/>}/>
             <Route path="/login" element={<LoginPage/>}/>
              
-            <Route element={<RequireAuth allowedRoles={'ADMIN'} />}>
+            <Route element={<RequireAuth allowedRoles={['ADMIN']} />}>
                 {/* HR Routes */}
                 <Route path="/admin" element={<AdminLayout/>}>
                     <Route index path="employee" element={<EmployeePage/>} />
                     {/* View Employee ID */}
                     <Route path="employee/:id" element={<ViewEmployee/>} />
-                    {/* View Payroll */}
-                    <Route path="employee/payroll/:id" element={<PayrollPage/>}/>
                     {/* View newhired */}
                     <Route path="employee/new" element={<ConfirmingEmployeePage/>} />
-                    {/* Configure Payheads */}
-                    <Route path="employee/:id/payheads" element={<EmployeePayheadPage/>} />
+                    {/* View Payroll */}
+                    <Route path="payroll" element={<PayrollPage/>}/>
+                    {/* View Payroll Details */}
+                    <Route path="payroll/:id" element={<PayrollDetailPage/>}/>
                     {/* View Salary Slips */}
                     <Route path="salaryslips" element={<SalarySlipPage/>} />
                     <Route path="leave" element={<LeaveRequestPage/>} />
@@ -46,7 +47,7 @@ export default function Routes(){
             </Route>
 
 
-            <Route element={<RequireAuth allowedRoles={'MANAGER'} />}>
+            <Route element={<RequireAuth allowedRoles={['MANAGER','USER']} />}>
                 <Route path="/" element={<EmployeeLayout/>}>
                     {/* TODO: Edit what can Marketing view */}
                     <Route index path="employee" element={<EmployeePage/>} />

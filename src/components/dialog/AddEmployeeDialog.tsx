@@ -25,7 +25,7 @@ export function AddEmployeeDialog({row} : any){
                         <span className="ml-auto text-primary-foreground">Add as Employee</span>
                     </TooltipContent>
                 </Tooltip>
-                <DialogContent className="xl:max-w-5xl lg:max-w-3xl">
+                <DialogContent className=" xl:max-w-7xl lg:max-w-3xl ">
                     <DialogHeader>
                         <DialogTitle>Add Employee</DialogTitle>    
                     </DialogHeader>

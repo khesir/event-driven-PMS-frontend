@@ -5,12 +5,35 @@
 
 import { DataTable } from '@/components/DataTable'
 import { AddEmployeeDialog } from '@/components/dialog/AddEmployeeDialog'
+import { AddNewEmployeeDialog } from '@/components/dialog/AddNewEmployeeDialog'
 import { DeleteEmployeeDataDialog } from '@/components/dialog/DeleteEmployeeDataDialog'
 import PageTittle from '@/components/PageTitle'
+import NewEmployeeDataProvider, { OnAddEmployeeData } from '@/context/NewEmployeeDataProvider'
 import { getAssignedEmployeeData } from '@/controller/dataemployee'
 import { EmployeeData } from '@/lib/types'
 import { ColumnDef } from '@tanstack/react-table'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+
+
+
+
+export default function ConfirmingEmployeePage() {
+
+  return (
+    <div className='flex flex-col gap-5 w-full'>
+        <NewEmployeeDataProvider>
+          <div className='flex justify-between'>
+            <PageTittle title="New Employee"/>
+            <AddNewEmployeeDialog/>
+          </div>
+          <NewEmployeeTable />
+        </NewEmployeeDataProvider>
+    </div>
+
+  )
+}
+
+
 
 type DataEmployeeTable = {
   id: number;
@@ -62,59 +85,55 @@ const columns: ColumnDef<DataEmployeeTable>[] = [
   
 ]
 
-export default function ConfirmingEmployeePage() {
+export function NewEmployeeTable(){
   const [data, setData] = useState<DataEmployeeTable[]>([]);
-
+  const {employeeData} = useContext(OnAddEmployeeData)
   useEffect(()=> {
-    const handleData = async () => {
-      try{
-        const response = await getAssignedEmployeeData(false);
-        const newList = response.map((employeeData : EmployeeData) =>{
-          const {
-            id, 
-            firstname, 
-            middlename, 
-            lastname, 
-            birthday, 
-            contact,
-            email,
-            gender,
-            addressLine, 
-            barangay, 
-            country,
-            province,
-            createdAt,
-          } = employeeData
-          const fullAddress = `${barangay}, ${addressLine}, ${province}, ${country}`
-          const name = `${firstname} ${middlename} ${lastname}`;
-
-
-          return{
-            id,
-            fullname: name,
-            birthday, 
-            contact,
-            email,
-            gender,
-            fullAddress,
-            createdAt,
-          }
-        })
-        setData(newList)
-      } catch (error){
-        console.log(error)
-      }
-    }
     handleData()
   },[])
+  useEffect(() => {
+    handleData()
+  },[employeeData])
+  const handleData = async () => {
+    try{
+      const response = await getAssignedEmployeeData(false);
+      const newList = response.map((employeeData : EmployeeData) =>{
+        const {
+          id, 
+          firstname, 
+          middlename, 
+          lastname, 
+          birthday, 
+          contact,
+          email,
+          gender,
+          addressLine, 
+          barangay, 
+          country,
+          province,
+          createdAt,
+        } = employeeData
+        const fullAddress = `${barangay}, ${addressLine}, ${province}, ${country}`
+        const name = `${firstname} ${middlename} ${lastname}`;
 
-  return (
 
-    
-    <div className='flex flex-col gap-5 w-full'>
-      <PageTittle title="New Employee"/>
-      <DataTable columns={columns} data={data}/>
-    </div>
-
+        return{
+          id,
+          fullname: name,
+          birthday, 
+          contact,
+          email,
+          gender,
+          fullAddress,
+          createdAt,
+        }
+      })
+      setData(newList)
+    } catch (error){
+      console.log(error)
+    }
+  }
+  return(
+    <DataTable columns={columns} data={data}/>
   )
 }

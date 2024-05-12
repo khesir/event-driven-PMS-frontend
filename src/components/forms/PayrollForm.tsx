@@ -12,22 +12,23 @@ import { z } from "zod"
 import { useToast } from "../ui/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 
 import {getAllSignatory} from "@/controller/signatory"
 import { DataTable } from "../DataTable"
-import { ColumnDef, Row } from "@tanstack/react-table"
+import { ColumnDef } from "@tanstack/react-table"
 
 import { Card } from "../ui/card"
-import { Employee, Signatory } from "@/lib/types"
+import { Signatory } from "@/lib/types"
 import { payrollSchema } from "@/schemas"
 
 
 import {generatePayPeriodDates} from "@/lib/payperiodCalculation"
-import { createPayroll, PayrollSubmission } from "@/controller/payroll"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { EmployeeTable } from "../sections/EmployeePageTable"
-import { getEmployeeById } from "@/controller/employee"
+import { DialogTrigger } from "@radix-ui/react-dialog"
+import { PayrollContext } from "@/context/PayrollProvider"
+import { createPayroll } from "@/controller/payroll"
+
 
 export type SignatoryData = {
  id: string,
@@ -57,15 +58,12 @@ const columns : ColumnDef<SignatoryData>[] =[
     }
 ]
 
-type EmpData = {
-    data: EmployeeTable
-}
 
-export function PayrollForm({data} : EmpData){
-    const [employee, setEmployee] = useState<Employee>()
+export function PayrollForm(){
+    const {setPayroll} = useContext(PayrollContext)
     const [signatory, setSignatory] = useState<SignatoryData[]>([]);
     const [isLoading, setIsLoading] = useState<Boolean>(true);
-    const [payPeriodDates, setPayPeriodDates] = useState<{ startDate: string; endDate: string; } | null>(null);
+    const [payPeriodDates, setPayPeriodDates] = useState<{ startDate: string; endDate: string; payPeriod: string;} | null>(null);
     const [selectedPayPeriod, setSelectedPayPeriod] = useState<string>();
 
     const {toast} = useToast();
@@ -74,7 +72,6 @@ export function PayrollForm({data} : EmpData){
         const dates = generatePayPeriodDates(value);
         setPayPeriodDates(dates);
       };
-
 
     useEffect(()=> {
         const handleData = async() => {
@@ -94,7 +91,7 @@ export function PayrollForm({data} : EmpData){
                         signatoryName: name,
                         fullname: fullname,
                         designation: designation.designationName,
-                        department: department.departmentName,
+                        department: department.name,
                     }
                 })
                 setSignatory(newList)
@@ -102,17 +99,8 @@ export function PayrollForm({data} : EmpData){
                 console.log(error)
             }
         }
-        const fetchEmployee = async () => {
-            try{
-                const fetch = await getEmployeeById(data.id)
-                setEmployee(fetch)
-            } catch(error){
-                console.log(error)
-            }
-        }
         setIsLoading(true)
         handleData()
-        fetchEmployee()
         setIsLoading(false)
     }, [])
    
@@ -122,30 +110,32 @@ export function PayrollForm({data} : EmpData){
     })
 
     const handleSubmit = async (output: z.infer<typeof payrollSchema>) => {
-        try {
-
-            if(payPeriodDates){
+        try {   
+            if(payPeriodDates && output.signatory){
                 const newData = {
-                    signatory: signatory.find(d => String(d.id) === output.signatory),
-                    employee: employee,
-                    status:"Active",
+                    ...output,
+                    signatory: {
+                        id: output.signatory,
+                    },
+                    payrollDate: payPeriodDates.payPeriod,
                     start: payPeriodDates.startDate,
                     end: payPeriodDates.endDate,
                 }
-                await createPayroll(newData)
                 toast({
                     variant: "default",
                     title: "Data Added",
-                    description: (
-                        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                        
-                          <code className="text-white">{JSON.stringify(newData, null, 2)}</code>
-                        </pre>
-                      ),
+                    
                 })
+                setPayroll(await createPayroll(newData))
             } else {
-                throw Error
+                toast({
+                    variant: "destructive",
+                    title: "Error submitting data",
+                    description: "Something went wrong when submitting",
+                });
             }
+
+           
            
         } catch (error) {
             // If an error occurs during submission, handle it here
@@ -158,9 +148,7 @@ export function PayrollForm({data} : EmpData){
             });
         } 
     }
-    // useEffect(() => {
-    //     console.log(positions)
-    // })
+
     return (
     <Form {...form}>
         <form 
@@ -191,7 +179,7 @@ export function PayrollForm({data} : EmpData){
                         />
                         <FormField
                             control={form.control}
-                            name="payperiod"
+                            name="payrollFrequency"
                             render={({field}) => (
                                 <FormItem>
                                     <FormLabel>Pay Period</FormLabel>
@@ -208,25 +196,35 @@ export function PayrollForm({data} : EmpData){
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value = {"Monthly"}>Montly</SelectItem>
-                                            <SelectItem value = {"Semi-Monthly"}>Semi-Monthly</SelectItem>
-                                            <SelectItem value = {"Bi-Weekly"}>Bi-Weekly</SelectItem>
-                                            <SelectItem value = {"Weekly"}>Weekly</SelectItem>
+                                            <SelectItem value = {"MONTHLY"}>Montly</SelectItem>
+                                            <SelectItem value = {"SEMI_MONTHLY"}>Semi-Monthly</SelectItem>
+                                            <SelectItem value = {"BI_WEEKLY"}>Bi-Weekly</SelectItem>
+                                            <SelectItem value = {"WEEKLY"}>Weekly</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </FormItem>
                             )}
                         />
+
                         <Card className="p-5">
                         {payPeriodDates ? (
                             <>
-                                <p>Pay period starts on {payPeriodDates.startDate} and ends on {payPeriodDates.endDate}</p>
+                                <p>
+                                    Pay period 
+                                    <br/>
+                                    - start: {payPeriodDates.startDate}<br/>- ends: {payPeriodDates.endDate}
+                                    <br/>
+                                    <br/>
+                                    Payroll : {payPeriodDates.payPeriod}
+                                </p>
                             </>
                             ) : (
                             <p>Please select a pay period</p>
                             )}
                         </Card>
-                        <Button type="submit">Submit</Button>
+                        <DialogTrigger asChild>
+                            <Button type="submit">Submit</Button>
+                        </DialogTrigger>
                     </div>
                     <div>
                         {isLoading ? (

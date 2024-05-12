@@ -4,10 +4,10 @@ interface PayPeriod {
   }
   
 const payPeriods: PayPeriod[] = [
-{ label: 'Monthly', days: 30 },       // Assuming 30 days in a month
-{ label: 'Semi-Monthly', days: 15 },  // Semi-monthly is every 15 days
-{ label: 'Bi-Weekly', days: 14 },      // Every 14 days for bi-weekly
-{ label: 'Weekly', days: 7 },          // Every 7 days for weekly
+{ label: 'MONTHLY', days: 30 },       // Assuming 30 days in a month
+{ label: 'SEMI_MONTHLY', days: 15 },  // Semi-monthly is every 15 days
+{ label: 'BI_WEEKLY', days: 14 },      // Every 14 days for bi-weekly
+{ label: 'WEEKLY', days: 7 },          // Every 7 days for weekly
 ];
 
 export function generatePayPeriodDates(selectedPayPeriod: string) {
@@ -24,11 +24,14 @@ export function generatePayPeriodDates(selectedPayPeriod: string) {
 
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + payPeriod.days - 1); // Calculate end date
-  console.log(startDate)
-  console.log(endDate)
+
+
+  const payrollDate = new Date();
+  payrollDate.setDate(endDate.getDate() + 5)
   return {
       startDate: formatDateTime(startDate),
       endDate: formatDateTime(endDate),
+      payPeriod: formatDateTime(payrollDate)
   }
 }
 function formatDateTime(date: Date): string {

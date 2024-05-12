@@ -1,8 +1,16 @@
 export type Roles = 'ADMIN' | 'USER' | 'GUEST';
 
+
+export type User = {
+  id: number,
+  email: string,
+  password: string,
+  role: string
+}
+
 export type Department = {
   id: number;
-  departmentName: string;
+  name: string;
   status: string;
   createdAt: string;
   lastUpdated: string;
@@ -11,6 +19,9 @@ export type Department = {
 export type Designation = {
   id: number;
   designationName: string;
+  breakHourLimit: Number;
+  leavelimit: Number;
+  limitHolyDay: Number;
   status: string,
   createdAt: string;
   lastUpdated: string;
@@ -25,6 +36,7 @@ export type EmployeeData = {
   contact: string;
   email: string;
   gender: string;
+  // Full Address
   addressLine: string;
   barangay: string;
   country: string;
@@ -34,17 +46,31 @@ export type EmployeeData = {
 };
 
 export type Employee = {
-  [x: string]: any;
   id: number;
   empNum: string;
   department: Department;
   designation: Designation;
   employeeData: EmployeeData;
   employeeType: string;
+  bankAccountDetails: string;
+  hourlyRate: number;
+  philhealth: String;
+  socialSecurity: String;
+  employementStartDate: String;
+  employementEndDate: String;
+  taxIdentification: String;
+  user: UserAcc;
   status: string;
   createdAt: string;
   lastUpdated: string;
 };
+
+export type UserAcc = {
+  id: number;
+  email: string;
+  password: string;
+  role: string;
+}
 
 export type Signatory = {
   id: number;
@@ -58,13 +84,11 @@ export type Signatory = {
 export type Payroll = {
   id: number;
   signatory: Signatory;
-  employee: Employee;
+  employee: Employee[];
   start: string;
   end: string;
-  total_earnings: string;
-  total_deductions: string;
-  net_pay: string;
-  status: string;
+  payrollFrequency: string;
+  payrollDate: String;
   createdAt: string;
   lastUpdated: string;
 };

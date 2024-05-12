@@ -29,9 +29,9 @@ export function Nav({ links }: NavProps) {
             key={index}
             to={link.href}
             className={cn(
-              buttonVariants({ variant: link.href === pathName ? "default" : "ghost", size: "lg" }),
+              buttonVariants({ variant: link.href === pathName ? "default" : "ghost", size: "sm" }),
               link.variant === "default" &&
-                "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white",
+                "text-muted-foreground transition-all hover:text-primary",
               "justify-start"
             )}
           >

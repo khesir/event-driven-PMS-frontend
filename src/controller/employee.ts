@@ -25,9 +25,9 @@ export async function sumbitEmployeeData(data: any){
 
 export async function getAllEmployee() {
     try{
-      const response = await request<ApiResponse<Employee>>("GET","/employee")
-    
-      return response.data
+        const response = await request<ApiResponse<Employee>>("GET","/employee")
+            
+        return response.data
     } catch(error){
         console.log(error)
     }

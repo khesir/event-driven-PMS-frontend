@@ -20,10 +20,12 @@ import { Separator } from "../ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { DataEmployeeSchema } from "@/schemas"
 import { sumbitEmployeeData } from "@/controller/dataemployee"
-import { useState } from "react"
+import { useContext, useState } from "react"
+import { OnAddEmployeeData } from "@/context/NewEmployeeDataProvider"
+import { DialogTrigger } from "@radix-ui/react-dialog"
 
 export function AddEmployeeDataForm(){
-    
+    const {setEmployeeData} = useContext(OnAddEmployeeData)
     const {toast} = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false)
     const form = useForm<z.infer<typeof DataEmployeeSchema>>({
@@ -40,22 +42,15 @@ export function AddEmployeeDataForm(){
             country: "",
             province: "",
         },        
-        
-
     });
 
     const handleSubmit = async (data: z.infer<typeof DataEmployeeSchema>) => {
         setIsSubmitting(true)
         try{
-            await sumbitEmployeeData(data)
+            setEmployeeData(await sumbitEmployeeData(data))
             toast({
                 variant: "default",
-                title: "Data Added, Kindly Refresh the page",
-                description: (
-                    <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                        <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-                    </pre>
-                    ),
+                title: "Data Added",
             })
         }catch (error) {
             // If an error occurs during submission, handle it here
@@ -286,8 +281,9 @@ export function AddEmployeeDataForm(){
                 </div>
             
             </div>
-
+        <DialogTrigger asChild>
             <Button type="submit">Submit</Button>
+        </DialogTrigger>
         </form>
     </Form>
   )

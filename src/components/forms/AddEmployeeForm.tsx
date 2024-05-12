@@ -1,10 +1,10 @@
 import { useForm } from "react-hook-form";
 import { useToast } from "../ui/use-toast";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
-import { useEffect, useState } from "react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { useContext, useEffect, useState } from "react";
 import { getEmployeeDataById } from "@/controller/dataemployee";
 import { Department, Designation, EmployeeData } from "@/lib/types";
-import { getEmployeeCount, sumbitEmployeeData } from "@/controller/employee";
+import { sumbitEmployeeData } from "@/controller/employee";
 import { z } from "zod";
 import { EmployeeSchema } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,13 +14,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Button } from "../ui/button";
 import { Table, TableCell, TableRow, TableBody } from "../ui/table";
 import { Card } from "../ui/card";
+import { DialogTrigger } from "@radix-ui/react-dialog";
+import { OnAddEmployeeData } from "@/context/NewEmployeeDataProvider";
+import { Input } from "../ui/input";
+import PageTittle from "../PageTitle";
 
 export function AddEmployeeForm({id} :any){
     
+    const {setEmployeeData} = useContext(OnAddEmployeeData)
+
     const {toast} = useToast();
     const [dataEmployee, setDataEmployee] = useState<EmployeeData>();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [employeeCount, setEmployeeCount] = useState<Number>();
 
     const [department, setDepartment] = useState<Department[]>([]);
     const [designation, setDesignation] = useState<Designation[]>([]);
@@ -30,14 +35,6 @@ export function AddEmployeeForm({id} :any){
             try{
                 const fetch = await getEmployeeDataById(id);
                 setDataEmployee(fetch);
-            } catch(error){
-                console.log(error)
-            }
-        }
-        const employeeCount = async() => {
-            try{
-                const fetch = await getEmployeeCount();
-                setEmployeeCount(fetch);
             } catch(error){
                 console.log(error)
             }
@@ -53,47 +50,51 @@ export function AddEmployeeForm({id} :any){
         const getDesignations = async() =>{
             try {
                 const fetch = await getAllDesignation();
+                console.log(fetch)
                 setDesignation(fetch);
             } catch (error) {
                 console.log(error)
             }
         }
         handleData();
-        employeeCount();
         getDepartments();
         getDesignations();
     },[])
+
     const form = useForm<z.infer<typeof EmployeeSchema>>({
         resolver: zodResolver(EmployeeSchema),
         defaultValues:{
             department : '',
             designation : '',
             employeeType: '',
-            status: 'Active'
+            bankAccountDetails: '',
+            philhealth: '',
+            socialSecurity:'',
+            taxIdentification: '',
+            hourlyRate: ''
         }
     });
     // empNum: `EMP${String(employeeCount).padStart(3, '0')}`, 
-    const handleSubmit = (data:z.infer<typeof EmployeeSchema>) => {
+    const handleSubmit = async (data:z.infer<typeof EmployeeSchema>) => {
         setIsSubmitting(true)
         try{
             
             const newData = {
-                empNum: `EMP${String(employeeCount).padStart(3, '0')}`, // Filter
+                ...data,
                 employeeData: dataEmployee,
                 department: department.find(d => d.id === Number(data.department)),
                 designation: designation.find(d => d.id === Number(data.designation)),
-                employeeType: data.employeeType,
-                status: data.status
+                employeeType: data.employeeType
             }
-            sumbitEmployeeData(newData)
+            const check = await sumbitEmployeeData(newData);
+            if(check){
+                
+                setEmployeeData(dataEmployee);
+            
+            }
             toast({
                 variant: "default",
-                title: "Data Added, Kindly Refresh the page",
-                description: (
-                    <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                        <code className="text-white">{JSON.stringify(newData, null, 2)}</code>
-                    </pre>
-                    ),
+                title: "Data Added",
             })
         } catch (error){
             toast({
@@ -111,112 +112,180 @@ export function AddEmployeeForm({id} :any){
     }
     
     return(
-        <div className="grid grid-cols-2 gap-5">
-            <Form {...form}>
-            <form
-                onSubmit={form.handleSubmit(handleSubmit)}
-                className="w-full flex flex-col gap-5">
-                    <FormField
-                        control={form.control}
-                        name="department"
-                        render = {({field}) => (
-                            <FormItem>
-                                <FormLabel>Department</FormLabel>
-                                    <Select onValueChange={ field.onChange } defaultValue={field.value} disabled={isSubmitting}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue
-                                                placeholder="Choose a Department" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {department.map((d,i) => (
-                                                <SelectItem key={i} value={String(d.id)}>{d.departmentName}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="designation"
-                        render = {({field}) => (
-                            <FormItem>
-                                <FormLabel>Designation</FormLabel>
-                                    <Select onValueChange={ field.onChange } defaultValue={field.value} disabled={isSubmitting}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue
-                                                placeholder="Choose a Designation" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {designation.map((d,i) => (
-                                                <SelectItem key={i} value={String(d.id)}>{d.designationName}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="employeeType"
-                        render = {({field}) => (
-                            <FormItem>
-                                <FormLabel>Employee Type</FormLabel>
-                                    <Select onValueChange={ field.onChange } defaultValue={field.value} disabled ={isSubmitting}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue
-                                                placeholder="Choose a Designation" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="Full-time">Full-time</SelectItem>
-                                            <SelectItem value="Part-time">Part-time</SelectItem>
-                                            <SelectItem value="Contractor">Contractor</SelectItem>
-                                            <SelectItem value="Temporary">Temporary</SelectItem>
-                                            <SelectItem value="Intern">Intern</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="status"
-                        render = {({field}) => (
-                            <FormItem>
-                                <FormLabel>Status</FormLabel>
-                                    <Select onValueChange={ field.onChange } defaultValue={field.value} disabled ={isSubmitting}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue
-                                                placeholder="Status" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="Active">Active</SelectItem>
-                                            <SelectItem value="Inactive">Inactive</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                            </FormItem>
-                        )}
-                    />
-                    <Button type="submit" disabled={isSubmitting}>Submit</Button>
-                </form>
-            </Form>
-            <div className="flex flex-col">
-                <Card className="p-5">
+        <div className="grid grid-cols-3 gap-5 w-full h-full">
+            <div className=" col-span-2">
+                <Form {...form}>
+                    <form
+                        onSubmit={form.handleSubmit(handleSubmit)}
+                        className="w-full flex flex-col gap-5">
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                                <FormField
+                                    control={form.control}
+                                    name="department"
+                                    render = {({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Department</FormLabel>
+                                                <Select onValueChange={ field.onChange } defaultValue={field.value} disabled={isSubmitting}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue
+                                                            placeholder="Choose a Department" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {department.map((d,i) => (
+                                                            <SelectItem key={i} value={String(d.id)}>{d.name}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="designation"
+                                    render = {({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Designation</FormLabel>
+                                                <Select onValueChange={ field.onChange } defaultValue={field.value} disabled={isSubmitting}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue
+                                                            placeholder="Choose a Designation" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {designation.map((d,i) => (
+                                                            <SelectItem key={i} value={String(d.id)}>{d.designationName}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="employeeType"
+                                    render = {({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Employee Type</FormLabel>
+                                                <Select onValueChange={ field.onChange } defaultValue={field.value} disabled ={isSubmitting}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue
+                                                            placeholder="Choose a Designation" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="FULL_TIME">Full-time</SelectItem>
+                                                        <SelectItem value="PART_TIME">Part-time</SelectItem>
+                                                        <SelectItem value="CONTRACT">Contractor</SelectItem>
+                                                        <SelectItem value="TEMPORARY">Temporary</SelectItem>
+                                                        <SelectItem value="INTERN">Intern</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <PageTittle title="Additional Information (Optional)" className=" text-sm"/>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                                <FormField
+                                    control={form.control}
+                                    name="bankAccountDetails"
+                                    render = {({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Bank</FormLabel>
+                                            <FormControl>
+                                                <Input 
+                                                    disabled = {isSubmitting}
+                                                    placeholder="Bank Number" 
+                                                    {...field} />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="philhealth"
+                                    render = {({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Philhealth</FormLabel>
+                                            <FormControl>
+                                                <Input 
+                                                    disabled = {isSubmitting}
+                                                    placeholder="Serial ID" 
+                                                    {...field} />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="socialSecurity"
+                                    render = {({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Social Security</FormLabel>
+                                            <FormControl>
+                                                <Input 
+                                                    disabled = {isSubmitting}
+                                                    placeholder="socialSec" 
+                                                    {...field} />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="taxIdentification"
+                                    render = {({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Tax ID</FormLabel>
+                                            <FormControl>
+                                                <Input 
+                                                    disabled = {isSubmitting}
+                                                    placeholder="Serial ID" 
+                                                    {...field} />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="hourlyRate"
+                                    render = {({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Hourly Rate</FormLabel>
+                                            <FormControl>
+                                                <Input 
+                                                    disabled = {isSubmitting}
+                                                    placeholder="0" 
+                                                    {...field} />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <DialogTrigger asChild>
+                                <Button type="submit" disabled={isSubmitting}>Submit</Button>
+                            </DialogTrigger>
+                        </form>
+                </Form>
+            </div>
+            <div className="">
+                <Card className="flex flex-col p-5">
                     <p>Employee Data</p>
                     <Table>
                         <TableBody>
-                            <TableRow>
-                                <TableCell>Employee ID</TableCell>
-                                <TableCell>{`EMP${String(employeeCount).padStart(3, '0')}`}</TableCell>
-                            </TableRow>
                             <TableRow>
                                 <TableCell>Full Name</TableCell>
                                 <TableCell>{`${dataEmployee?.lastname}, ${dataEmployee?.firstname} ${dataEmployee?.middlename}`}</TableCell>
