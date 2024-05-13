@@ -1,11 +1,40 @@
 export type Roles = 'ADMIN' | 'USER' | 'GUEST';
 
+export type AssignTimeKeeping = {
+  id: number;
+  employee:Employee;
+  timeKeeping: TimeKeeping;
+  payroll: {
+    id: number
+  };
+  hoursWorked: string;
+  type: string;
+  workDate: string;
+}
+
+export type TimeKeeping ={
+  id: string;
+  description: string;
+  dailyWorkHourStart: string;
+  dailyWorkHourEnd: string;
+}
+
+export type AdjustmentData = {
+  id: string;
+  type: string;
+  category : string;
+  name: string;
+  amount: string;
+  remarks: string;
+  createdAt: string;
+  lastUpdated: string;
+}
 
 export type User = {
-  id: number,
-  email: string,
-  password: string,
-  role: string
+  id: number;
+  email: string;
+  password: string;
+  role: string;
 }
 
 export type Department = {
@@ -89,6 +118,7 @@ export type Payroll = {
   end: string;
   payrollFrequency: string;
   payrollDate: String;
+  status: string;
   createdAt: string;
   lastUpdated: string;
 };

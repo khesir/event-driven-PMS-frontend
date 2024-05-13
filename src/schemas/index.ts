@@ -1,5 +1,18 @@
 import * as z from "zod"
 
+export const AttendanceFormSchema = z.object({
+    hoursWorked : z.string(),
+    type: z.string(),
+})
+
+export const AdjustmentFormSchema = z.object({
+    type: z.string().min(2),
+    category: z.string().min(2),
+    name: z.string().min(2),
+    amount: z.string().min(2),
+    remarks: z.string().optional()
+})
+
 export const RegisterForm = z.object({
     email: z.string().min(2),
     password: z.string().min(2),

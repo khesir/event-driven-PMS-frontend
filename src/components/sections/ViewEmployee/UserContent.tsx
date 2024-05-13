@@ -1,7 +1,7 @@
 import { AddUserDialog } from "@/components/dialog/AddUserDialog";
 import PageTittle from "@/components/PageTitle";
 import { Card } from "@/components/ui/card";
-import { TableBody, TableRow, TableCell, TableHeader, TableHead, Table } from "@/components/ui/table";
+import { TableBody, TableRow, TableCell, Table } from "@/components/ui/table";
 import { AuthContext } from "@/context/AuthProvider";
 import { getEmployeeUserByEmail } from "@/controller/userController";
 import { Employee, User } from "@/lib/types";
@@ -14,7 +14,7 @@ type EmpProp = {
 export function EmployeeUserDetail({emp}: EmpProp){
 
     const {auth} = useContext(AuthContext);
-    const [user, setUser] = useState<User>()
+    const [user, setUser] = useState<Boolean>()
 
     useEffect(() => {
         fetchData()
@@ -24,9 +24,11 @@ export function EmployeeUserDetail({emp}: EmpProp){
         try {
             const response = await getEmployeeUserByEmail(emp.employeeData.email)
             if(response === 404){
-                setUser(undefined)
+                setUser(false)
+            } else if(response === 200){
+                setUser(true)
             } else if(response){
-                setUser(response)
+                setUser(true)
             }
         } catch (error) {
             console.log(error)
@@ -48,7 +50,7 @@ export function EmployeeUserDetail({emp}: EmpProp){
                 <Card className='w-full'>
                     <Table>
                         {
-                        user === undefined ? (
+                        user === false ? (
                             <TableBody>
                                 <TableRow>
                                     <TableCell className='flex justify-center'>
@@ -57,44 +59,13 @@ export function EmployeeUserDetail({emp}: EmpProp){
                                 </TableRow>
                             </TableBody>
                         ) : (
-                            <>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>
-                                            Category
-                                        </TableHead>
-                                        <TableHead>
-                                            Value
-                                        </TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow>
-                                        <TableCell>
-                                            Email
-                                        </TableCell>
-                                        <TableCell>
-                                            {user.email}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell>
-                                            AccessLevel
-                                        </TableCell>
-                                        <TableCell>
-                                            {user.role}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell>
-                                            Password
-                                        </TableCell>
-                                        <TableCell>
-                                            {user.password}
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell className='flex justify-center'>
+                                        User has account {emp.employeeData.email}
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
                         )
                         }
                     </Table>

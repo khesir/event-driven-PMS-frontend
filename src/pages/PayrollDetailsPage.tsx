@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import PayrollDetailsProvider, { PayrollEmployeeListContext } from '@/context/PayrollDetailsProvider'
+import PayrollDataProvider, { PayrollContext } from '@/context/PayrollProvider'
 import {  getPayrollByID } from '@/controller/payroll'
-import {  Employee, Payroll } from '@/lib/types'
+import { createPaySlip } from '@/controller/payslip'
+import {  Employee, Payroll, Payslip } from '@/lib/types'
 import { ColumnDef } from '@tanstack/react-table'
-import { SquarePen } from 'lucide-react'
-import { useContext, useEffect,  useState } from 'react'
+import { useContext, useEffect,  } from 'react'
 import {  useParams } from 'react-router-dom'
 
 const EmployeeADD: ColumnDef<Employee>[] = [
@@ -53,7 +54,6 @@ const EmployeeADD: ColumnDef<Employee>[] = [
     },
   }
 ]
-
 const EmployeeRemove: ColumnDef<Employee>[] = [
   {
     accessorKey: "id",
@@ -93,31 +93,63 @@ const EmployeeRemove: ColumnDef<Employee>[] = [
   }
 ]
 
-
 export default function PayrollDetailPage() {
 
+  
+  return (
+
+      <div className='flex flex-col gap-5 w-full py-3'>
+        <PayrollDataProvider>
+          <PayrollHeading/>
+          <PayrollData/>
+        </PayrollDataProvider>
+      </div>
+
+  )
+}
+
+function PayrollHeading(){
+  const {payroll} = useContext(PayrollContext)
+
+  const handleData = async() => {
+    payroll?.employee.map(async emp => {
+      const data = {
+        payroll: payroll,
+        total_earnings: Math.random() * 1000,
+        total_deductions:  Math.random() * 1000,
+        net_pay: Math.random() * 1000,
+      }
+      await createPaySlip(data)
+    })
+  }
+  return(
+    <div className='flex justify-between'>
+      <PageTittle title="Payroll Information"/>
+      <Button onClick={handleData}>Generate Payslips</Button>
+    </div>
+  )
+}
+function PayrollData(){
+  const {payroll,setPayroll} = useContext(PayrollContext)
+  
   const { id } = useParams<{ id: string }>();
-  const [payroll, setPayroll] = useState<Payroll>();
 
   useEffect(() =>{
     fetchData()
-  },[])
+  },[id])
   
   const fetchData =async () =>{
     try {
       const data : Payroll = await getPayrollByID(id);
+      console.log(data)
       setPayroll(data)
     } catch (error){
       console.log(error)
     }
   }
-  
-  return (
-
-      <div className='flex flex-col gap-5 w-full py-3'>
-        <PageTittle title="Payroll Information"/>
-       
-        <Card className='grid grid-cols-2 w-full h-full max-h-[450px]'>
+  return(
+    <>
+      <Card className='grid grid-cols-2 w-full h-full max-h-[450px]'>
           <div className=' border-b col-span-2'>
             <Table>
             <TableBody>
@@ -145,21 +177,24 @@ export default function PayrollDetailPage() {
                 <TableCell>End</TableCell>
                 <TableCell>{payroll?.end}</TableCell>
               </TableRow>
+              <TableRow>
+                <TableCell>Status</TableCell>
+                <TableCell>{payroll?.status}</TableCell>
+              </TableRow>
              
             </TableBody>
           </Table>
           </div>
         </Card>
 
-        <div className='grid grid-cols-2 gap-5'>
-           <PayrollDetailsProvider payrollId={Number(id)}>
+          <div className='grid grid-cols-2 gap-5'>
+            <PayrollDetailsProvider payrollId={payroll?.id ?? 0}>
               <AvailableEmployee/>
               <EmployeeInPayroll/>
-           </PayrollDetailsProvider>
+            </PayrollDetailsProvider>
             
           </div>
-      </div>
-
+    </>
   )
 }
 

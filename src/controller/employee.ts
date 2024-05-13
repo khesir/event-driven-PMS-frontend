@@ -2,10 +2,22 @@
 import { ApiResponse, request } from "@/api/axios";
 import { Employee } from "@/lib/types";
 
+
+export async function getEmployeeByEmail(email: any){
+    try{
+        console.log(email)
+        const response = await request<ApiResponse<Employee>>("GET",`/employee/fetch?email=${email}`)
+
+        return response.data
+    }
+    catch(error){
+        console.error("Error sending data: ", error);
+    }
+}
+
 export async function sumbitEmployeeData(data: any){
 
     try{
-        
          const response = await request<ApiResponse<Employee>>("POST","/employee", data);
          return response.data; 
      }
@@ -44,7 +56,7 @@ export async function getEmployeeById(id: any){
     }
 }
 
-export async function UpdateEmployee(data:any,id:string){
+export async function UpdateEmployee(data:any,id:any){
     try{
         if(id === '') throw Error
         const response = await  request<ApiResponse<Employee>>("PUT",`/employee/${id}`,data)

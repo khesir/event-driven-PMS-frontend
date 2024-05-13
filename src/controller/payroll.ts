@@ -1,13 +1,14 @@
 import { ApiResponse, request } from "@/api/axios"
 
+export async function getActivePayrollWithEmployeeinIt(empId:any,status:any){
+    try {
+        const response = await request<ApiResponse<any>>("GET",`/payroll/fetch?empId=${empId}&status=${status}`)
 
-export type PayrollSubmission = {
-    signatory: string,
-    employee: string,
-    start: string,
-    end: string,
+        return response.data
+    } catch (error) {
+        throw error
+    }
 }
-
 export async function getAllPayRoll(){
     try {
         const response = await request<ApiResponse<any>>("GET","/payroll")

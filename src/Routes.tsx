@@ -5,7 +5,6 @@ import NoPage from "./pages/NoPage"
 import EmployeePage from "./pages/EmployeePage"
 import { AdminLayout } from "./layouts/AdminLayout"
 import ConfirmingEmployeePage from "./pages/ConfirmingEmployeePage"
-import { EmployeePayheadPage } from "./pages/EmployeePayheadsPage"
 import PayrollPage from "./pages/PayrollPage"
 import SalarySlipPage from "./pages/SalarySlipPage"
 import ViewEmployee from "./pages/ViewEmployee"
@@ -13,9 +12,9 @@ import RequireAuth from "./context/RequireAuth"
 import { SignatoryPage } from "./pages/SignatoryPage"
 import { EmployeeLayout } from "./layouts/EmployeeLayout"
 import LeaveRequestPage from "./pages/LeaveRequestPage"
-import PayHeadsPage from "./pages/PayheadPage"
 import UnauthorizedPage from "./pages/UnauthorizedPage"
 import PayrollDetailPage from "./pages/PayrollDetailsPage"
+import AttendancePage from "./pages/AttendancePage"
 
 
 
@@ -41,7 +40,6 @@ export default function Routes(){
                     {/* View Salary Slips */}
                     <Route path="salaryslips" element={<SalarySlipPage/>} />
                     <Route path="leave" element={<LeaveRequestPage/>} />
-                    <Route path="payheads" element={<PayHeadsPage/>} />
                     <Route path="signatory" element={<SignatoryPage/>} />
                 </Route>
             </Route>
@@ -50,17 +48,10 @@ export default function Routes(){
             <Route element={<RequireAuth allowedRoles={['MANAGER','USER']} />}>
                 <Route path="/" element={<EmployeeLayout/>}>
                     {/* TODO: Edit what can Marketing view */}
-                    <Route index path="employee" element={<EmployeePage/>} />
+                    <Route index path="attendance" element={<AttendancePage/>} />
                     {/* View Employee ID */}
-                    <Route path="employee/:id" element={<ViewEmployee/>} />
-                    {/* View Payroll */}
-                    <Route path="employee/payroll/:id" element={<PayrollPage/>}/>
-                    {/* View ENewhired */}
-                    <Route path="employee/new" element={<ConfirmingEmployeePage/>} />
-                    {/* Configure Payheads */}
-                    <Route path="employee/:id/payheads" element={<EmployeePayheadPage/>} />
-                    {/* View Salary Slips */}
-                    <Route path="salaryslips" element={<SalarySlipPage/>} />
+                    <Route path="attendance/employee/:id" element={<ViewEmployee/>} />
+
                 </Route>
             </Route>
 

@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@
 import PageTittle from '@/components/PageTitle'
 import { useParams } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
-import { Employee, LeaveRequest } from '@/lib/types'
+import { AssignTimeKeeping, Employee, LeaveRequest, Payroll } from '@/lib/types'
 
 import { getEmployeeById } from '@/controller/employee'
 import { EditEmployeeDataDialog } from '@/components/dialog/EditEmployeeDataDialog'
@@ -13,6 +13,8 @@ import { DataTable } from '@/components/DataTable'
 
 import { EmployeeUserDetail } from '@/components/sections/ViewEmployee/UserContent'
 import { getAllLeaveRequest } from '@/controller/requestLeave'
+import { getAssignTimeKeepByEmployeeIDAndPayroll } from '@/controller/asssignTimeKeeping'
+import { getActivePayrollWithEmployeeinIt } from '@/controller/payroll'
 
   
 
@@ -20,13 +22,12 @@ export default function ViewEmployee(){
     const currentRun = useRef(false)
     const { id } = useParams<{ id: string }>();
     const [employee, setEmployee] = useState<Employee>();
-
+    const [payroll,setPayroll] = useState<Payroll>();
     useEffect(()=>{
         if(currentRun.current === false){
             const fetchData = async () => {
                 try {
                     const data = await getEmployeeById(id);
-                    console.log(data)
                     setEmployee(data);
                 } catch (error) {
                     console.error("Error fetching data:", error);
@@ -35,7 +36,18 @@ export default function ViewEmployee(){
             currentRun.current = true;
             fetchData()
         }
-    })
+    },[])
+    useEffect(()=>{
+      fetchPayroll()
+    },[employee])
+    const fetchPayroll = async() =>{
+      try {
+        const response : Payroll = await getActivePayrollWithEmployeeinIt(employee?.id,"ACTIVE");
+        setPayroll(response)    
+      } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+    }
     return(
         <div className='grid grid-cols-2 gap-5'>
             
@@ -185,169 +197,63 @@ export default function ViewEmployee(){
             </div>
             {/* Attendance Data */}
             <div className='w-full h-full p-5'> 
-                {/* Rollbase View */}
-                {/* Employee Leave Requests Form */}
-                <AttendanceRecordTable/>
+              {/* Rollbase View */}
+              {/* Employee Leave Requests Form */}
+              {employee && payroll && <AttendanceRecordTable employee={employee} payroll={payroll}/>}
             </div>
-            {/* Leave Data */}
-            <div className='w-full h-full p-5`'>
-                <LeaveDataTable/>
-                
-            </div>
-            {/* Payslips */}
-            <div className='w-full h-full p-5`'>
-                <Payslips/>
-            </div>
+
         </div>
 
     )
 }
 
 
-type LeaveRequestData = {
-    id: String,
-    comment: String,
-    leaveType: String,
-    start: String,
-    end: String,
-    status: String,
+const columns: ColumnDef<AssignTimeKeeping>[] = [
+  {
+    accessorKey: "id",
+    header: "ID",
+  },{
+    accessorKey: "hoursWorked",
+    header: "Total Hours",
+  },{
+    accessorKey: "type",
+    header: "Type",
+  },{
+    accessorKey: "workDate",
+    header: "WorkDate",
   }
-  
-  const columns: ColumnDef<LeaveRequestData>[] = [
-    {
-      accessorKey: "id",
-      header: "ID",
-    },{
-      accessorKey: "comment",
-      header: "comment",
-    },{
-      accessorKey: "leaveType",
-      header: "type",
-    },{
-      accessorKey: "start",
-      header: "start",
-    },{
-      accessorKey: "end",
-      header: "end",
-    },{
-      accessorKey: "status",
-      header: "status",
-    },
-  ]
+]
 
-function AttendanceRecordTable(){
-    
-  const [LeaveRequests, setLeaveRequests] = useState<LeaveRequestData[]>([]);
+type AttendanceDataProp = {
+  employee: Employee,
+  payroll: Payroll
+}
+
+function AttendanceRecordTable({employee,payroll}: AttendanceDataProp){
+  const [assignTimeKeeping,setAssignTimeKeeping] = useState<AssignTimeKeeping[] | undefined>(undefined);
 
   useEffect(() => {
-    const getData = async () =>{
+        handleData()     
+  },[])
+  const handleData = async() => {
       try {
-        const req = await getAllLeaveRequest();
-        const newList : LeaveRequestData[] = req.map((leave : LeaveRequest ) =>{
-          const {id, comment, leaveType, dateOfLeave,dateOfEnd,status} = leave
-          
-
-          return {
-            id,
-            comment,
-            leaveType,
-            dateOfLeave,
-            dateOfEnd,
-            status,
-          }
-        })
-        setLeaveRequests(newList)
+          const response = await getAssignTimeKeepByEmployeeIDAndPayroll(payroll.id,employee.id)
+          console.log(response)
+          setAssignTimeKeeping(response)
       } catch (error) {
-        console.log(error)
+          console.log(error)
       }
-    }
-    getData();
-  },[]);
+  }
+
+
 
     return(
         
       <div className='flex flex-col gap-5 w-full'>
         <PageTittle title="Attendance"/>
-        <DataTable columns={columns} data={LeaveRequests}/>
+        <DataTable columns={columns} data={assignTimeKeeping ?? []}/>
         </div>
 
     )
 }
 
-
-function LeaveDataTable(){
-    
-    const [LeaveRequests, setLeaveRequests] = useState<LeaveRequestData[]>([]);
-  
-    useEffect(() => {
-      const getData = async () =>{
-        try {
-          const req = await getAllLeaveRequest();
-          const newList : LeaveRequestData[] = req.map((leave : LeaveRequest ) =>{
-            const {id, comment, leaveType, dateOfLeave,dateOfEnd,status} = leave
-            
-  
-            return {
-              id,
-              comment,
-              leaveType,
-              dateOfLeave,
-              dateOfEnd,
-              status,
-            }
-          })
-          setLeaveRequests(newList)
-        } catch (error) {
-          console.log(error)
-        }
-      }
-      getData();
-    },[]);
-  
-      return(
-          
-        <div className='flex flex-col gap-5 w-full'>
-          <PageTittle title="LeaveRequests"/>
-          <DataTable columns={columns} data={LeaveRequests}/>
-          </div>
-  
-      )
-  }
-function Payslips(){
-    
-    const [LeaveRequests, setLeaveRequests] = useState<LeaveRequestData[]>([]);
-  
-    useEffect(() => {
-      const getData = async () =>{
-        try {
-          const req = await getAllLeaveRequest();
-          const newList : LeaveRequestData[] = req.map((leave : LeaveRequest ) =>{
-            const {id, comment, leaveType, dateOfLeave,dateOfEnd,status} = leave
-            
-  
-            return {
-              id,
-              comment,
-              leaveType,
-              dateOfLeave,
-              dateOfEnd,
-              status,
-            }
-          })
-          setLeaveRequests(newList)
-        } catch (error) {
-          console.log(error)
-        }
-      }
-      getData();
-    },[]);
-  
-      return(
-          
-        <div className='flex flex-col gap-5 w-full'>
-          <PageTittle title="PaySlips"/>
-          <DataTable columns={columns} data={LeaveRequests}/>
-          </div>
-  
-      )
-  }
